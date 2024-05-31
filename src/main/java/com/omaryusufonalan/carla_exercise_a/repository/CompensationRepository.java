@@ -10,6 +10,4 @@ import java.util.List;
 @Repository
 public interface CompensationRepository extends JpaRepository<Compensation, Long> {
 
-    @Query(value = "?1", nativeQuery = true)
-    List<Compensation> getAll(String query);
 }
