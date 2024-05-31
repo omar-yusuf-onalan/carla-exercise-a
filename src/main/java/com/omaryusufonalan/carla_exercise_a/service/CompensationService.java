@@ -1,12 +1,12 @@
 package com.omaryusufonalan.carla_exercise_a.service;
 
 import com.omaryusufonalan.carla_exercise_a.dto.response.CompensationResponse;
+import com.omaryusufonalan.carla_exercise_a.entity.Compensation;
 import com.omaryusufonalan.carla_exercise_a.mapper.CompensationMapper;
-import com.omaryusufonalan.carla_exercise_a.repository.CompensationRepository;
+import com.omaryusufonalan.carla_exercise_a.mapper.CompensationRowMapper;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -14,12 +14,15 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CompensationService {
-    private final CompensationRepository compensationRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final CompensationMapper compensationMapper;
 
     public List<CompensationResponse> getAll(Map<String, String> params) {
-        StringBuilder beforeWhere = new StringBuilder("SELECT * FROM compensation ");
-        StringBuilder afterWhere = new StringBuilder();
+        StringBuilder query = new StringBuilder("SELECT * FROM compensation ");
+
+        if (params.size() > 1 || (!params.containsKey("sort") && !params.isEmpty())) {
+            query.append("WHERE ");
+        }
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
@@ -29,17 +32,36 @@ public class CompensationService {
                 continue;
             }
 
-            afterWhere.append(key).append(" = ").append(value).append(" AND ");
+            query.append(key).append(" = '").append(value).append("' AND ");
 
         }
-        afterWhere.delete(afterWhere.length() - 4, afterWhere.length());
 
-        afterWhere.append("ORDER BY ").append(params.get("sort"));
+        if (params.size() > 1 || (!params.containsKey("sort") && !params.isEmpty())) {
+            query.delete(query.length() - 4, query.length());
+        }
 
-        beforeWhere.append(afterWhere);
+        if (params.containsKey("sort")) {
+            query.append("ORDER BY ").append(params.get("sort"));
+        }
 
-        String query = beforeWhere.toString();
+        return compensationMapper.entityToListResponse(jdbcTemplate.query(query.toString(), new CompensationRowMapper()));
 
-        return compensationMapper.entityToListResponse(compensationRepository.getAll(query));
+    }
+
+    public Compensation getById(Long id, List<String> fields) {
+        StringBuilder query = new StringBuilder("SELECT ");
+
+        for (String field : fields) {
+            query.append(field).append(",");
+        }
+        query.deleteCharAt(query.length() - 1);
+
+        query.append(" FROM compensation WHERE id = ").append(id);
+
+        return jdbcTemplate.query(query.toString(), new CompensationRowMapper()).get(0);
+    }
+
+    public CompensationResponse getResponseById(Long id, List<String> fields) {
+         return compensationMapper.entityToResponse(getById(id, fields));
     }
 }
