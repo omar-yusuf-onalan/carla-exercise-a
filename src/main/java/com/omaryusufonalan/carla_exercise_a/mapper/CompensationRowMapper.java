@@ -27,7 +27,7 @@ public class CompensationRowMapper implements RowMapper<Compensation> {
             compensation.setJobTitle(rs.getString("job_title"));
         }
         if (columnExists(rs, "annual_salary")) {
-            compensation.setAnnualSalary(rs.getDouble("annual_salary"));
+            compensation.setAnnualSalary(rs.getString("annual_salary"));
         }
         if (columnExists(rs, "currency")) {
             compensation.setCurrency(rs.getString("currency"));

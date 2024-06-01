@@ -28,7 +28,7 @@ public class Compensation {
 
     private String jobTitle;
 
-    private Double annualSalary;
+    private String annualSalary;
 
     private String currency;
 
